@@ -59,23 +59,25 @@ def showCharacter():
 
 
 class Item(object):
-    def __init__(self, name, attack, armor, cost, quantity, description):
+    def __init__(self, name, attack, armor, cost, quantity, description, iid):
         self.name = name
         self.attack = attack
         self.armor = armor
         self.cost = cost
         self.quantity = quantity
         self.description = description
+        self.iid = iid
 
 
 class Monster(object):
-    def __init__(self, name, hp, armor, attack, gold, description):
+    def __init__(self, name, hp, armor, attack, gold, description, mid):
         self.name = name
         self.hp = hp
         self.armor = armor
         self.attack = attack
         self.gold = gold
         self.description = description
+        self.mid = mid
 
 
 class Inventory(object):
@@ -89,7 +91,7 @@ class Inventory(object):
         del self.items[item]
 
     def print_items(self):
-        print('\t'.join(['Name', 'Atk', 'Arm', 'Val', 'Qty' 'Desc']))
+        print('\t'.join(['Name', 'Atk', 'Arm', 'Val', 'Qty', 'Desc']))
         for item in self.items.values():
             print('\t'.join([str(x) for x in [item.name, item.attack, item.armor, item.cost, item.quantity, item.description]]))
 
@@ -100,16 +102,51 @@ class Fight(object):
 
     def fight_monster(self, monster):
         self.monsters[monster.name] = monster
-        print ("\nYou are fighting a %s" % monster.name)
-        playerInitiative = random.randint(1,20)
-        monsterInitiative = random.randint(1,20)
-        if playerInitiative >= monsterInitiative:
-            if "sword" in inventory.items:
-                print ("\nYou swing with your sword for 5 damage!")
-            else:
-                print ("\nYou swing with you fist for 1 damage!")
-        else:
-            print("The %s hits you for %d damage" % (monster.name, monster.attack))
+        global currentHP
+
+        while monster.hp > 0:
+            print ("\nYou are fighting a %s!" % monster.name)
+            print ("\nWhat do you want to do?")
+            print ("'Attack' will attack the enemy.")
+            print ("'Counter' Attempt to counter the enemies attack.")
+            print ("'Flee' - Run away!")
+            fmove = raw_input(">").lower().split()
+
+            if fmove[0] == "attack":
+                playerInitiative = random.randint(1, 20)
+                monsterInitiative = random.randint(1, 20)
+                print("\nYou roll initiative (d20): %d" % playerInitiative)
+                print("%s rolls initiative (d20): %d" % (monster.name, monsterInitiative))
+                if playerInitiative >= monsterInitiative:
+                    print ("You rolled a higher initiative!")
+                    if "sword" in inventory.items:
+                        print ("\nYou swing with your sword for 5 damage!")
+                        monster.hp -= 5
+                    else:
+                        print ("\nYou swing with you fist for 1 damage!")
+                        monster.hp -= 1
+                    if monster.hp < 1:
+                        del self.monsters[monster]
+                        print ("You defeated the %s!" % monster.name)
+                    else:
+                        print("\nThe %s hits you for %d damage" % (monster.name, monster.attack))
+                        currentHP -= monster.attack
+
+                else:
+                    print ("The %s rolled a higher initiative!" % monster.name)
+                    print("\nThe %s hits you for %d damage" % (monster.name, monster.attack))
+                    currentHP -= monster.attack
+                    if currentHP < 1:
+                        print ("\nYou have fallen in combat to the %s" % monster.name)
+                    if "sword" in inventory.items:
+                        print ("\nYou swing with your sword for 5 damage!")
+                        monster.hp -= 5
+                    else:
+                        print ("\nYou swing with you fist for 1 damage!")
+                        monster.hp -= 1
+        del self.monsters[monster]
+        print ("You defeated the %s!" % monster.name)
+
 
 
 location = {
@@ -135,16 +172,17 @@ location = {
         "monster": "goblin"}
     }
 
-currentLocation = 1
-previewLocation = 0
 inventory = Inventory()
 monster = Fight()
 showInstructions()
+
+currentLocation = 1
+previewLocation = 0
 currentHP = 10
 maxHP = 10
 currentGold = 10
 
-while True:
+while currentHP > 0:
     showStatus()
 
     move = raw_input(">").lower().split()
@@ -154,31 +192,40 @@ while True:
             currentLocation = location[currentLocation][move[1]]
         else:
             print ("You cannot go that way")
+
     elif move[0] == "get":
         if "item" in location[currentLocation] and move[1] in location[currentLocation]["item"]:
             if move[1] == "sword":
-                inventory.add_item(Item('sword', 5, 1, 10, 1, 'A rusty looking sword'))
+                inventory.add_item(Item('sword', 5, 1, 10, 1, 'A rusty looking sword', 1))
             if move[1] == "beer":
-                inventory.add_item(Item('beer', 1, 0, 1, 1, 'A foaming mug of ale'))
+                inventory.add_item(Item('beer', 1, 0, 1, 1, 'A foaming mug of ale', 100))
             print ("You picked up the " + move[1] + "!")
             del location[currentLocation]["item"]
         else:
             print("Cannot pickup " + move[1] + "!")
+
     elif move[0] == "fight":
         if currentLocation == 3:
             print "You decide not to start a bar fight."
         elif "monster" in location[currentLocation]:
-            monster.fight_monster(Monster('goblin', 10, 1, 3, 10, 'A weak looking goblin.'))
+            if location[currentLocation]["monster"] == 'goblin':
+                monster.fight_monster(Monster('goblin', 10, 1, 3, 10, 'A weak looking goblin.', 1))
+                del location[currentLocation]["monster"]
         else:
             print ("There is nothing to fight here")
+
     elif move[0] == "map":
         showDirections()
+
     elif move[0] == "inventory":
         showInventory()
+
     elif move[0] == "sheet":
         showCharacter()
+
     elif move[0] == "instructions":
         showInstructions()
+
     elif move[0] == "drink":
         if move[1] == "beer":
             print "You drink the foaming mug of ale!"
@@ -188,5 +235,9 @@ while True:
             quit(1)
     elif move[0] == "quit" or move[0] == "exit":
         quit(1)
+
     else:
         print ("\nNot a valid move! Type 'instructions' to see valid moves.\n")
+
+print ("You have died")
+quit(1)
