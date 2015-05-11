@@ -1,61 +1,77 @@
 __author__ = 'Robert Wilson - robwilson101@gmail.com'
+# Language = python3
 
 import random
 
-
 def showInstructions():
-    print ("Master of Avalon")
-    print ("========")
-    print ("Commands:")
-    print ("'Go [direction]' e.g 'Go east'")
-    print ("'Get [item]' e.g 'Get Sword")
-    print ("'Map' to see where you can go")
-    print ("'Fight' to fight the monster")
-    print ("'Inventory' to see your inventory")
-    print ("'Sheet' to see your character sheet (HP, mana, etc)")
-    print ("Other commands such as 'eat', 'drink', 'look' are also supported. Experiment!")
+    print("Master of Avalon")
+    print("========")
+    print("Commands:")
+    print("'Go [direction]' e.g 'Go east'")
+    print("'Get [item]' e.g 'Get Sword")
+    print("'Map' - See where you are and where uou can go")
+    print("'Look' - Get information about your surroundings")
+    print("'Fight' - Fight the monster")
+    print("'Inventory' - Open your inventory")
+    print("'Sheet' - See your character sheet (HP, mana, etc)")
+    print("Other commands are also supported. Experiment!\n")
 
 
 def showStatus():
     #prints out current status
-    print ("\nYou are currently in the %r" % location[currentLocation]["name"])
+    print("\n----------------------------------")
+    print("You are currently in the %r" % location[currentLocation]["name"])
+    print("----------------------------------")
     if "item" in location[currentLocation]:
-        print ("You see a " + location[currentLocation]["item"])
+        print("You see a %s" % location[currentLocation]["item"])
+    else:
+        print("You see no items in this area")
     if "monster" in location[currentLocation]:
-        print("You see a " + location[currentLocation]["monster"])
+        print("You see a %s" % location[currentLocation]["monster"])
+    else:
+        print("You see no monsters here")
+    if "north" or "south" or "east" or "west" in location[currentLocation]:
+        print("You see other areas nearby, maybe you should check your 'map'")
+    print("----------------------------------\n")
 
 
 def showDirections():
-    print ("\n----------------------------------")
+    print("\n----------------------------------")
+    print("You are currently in the %r" % location[currentLocation]["name"])
+    print("----------------------------------")
     if "north" in location[currentLocation]:
         previewLocation = location[currentLocation]["north"]
-        print ("To the north is the " + location[previewLocation]["name"])
+        print("To the north is the %r" % location[previewLocation]["name"])
     if "south" in location[currentLocation]:
         previewLocation = location[currentLocation]["south"]
-        print ("To the south is the " + location[previewLocation]["name"])
+        print("To the south is the %r" % location[previewLocation]["name"])
     if "east" in location[currentLocation]:
         previewLocation = location[currentLocation]["east"]
-        print ("To the east is the " + location[previewLocation]["name"])
+        print("To the east is the %r" % location[previewLocation]["name"])
     if "west" in location[currentLocation]:
         previewLocation = location[currentLocation]["west"]
-        print ("To the west is the " + location[previewLocation]["name"])
-    print ("----------------------------------")
+        print("To the west is the %r" % location[previewLocation]["name"])
+    print("----------------------------------\n")
 
 
 def showInventory():
-    print ("\n----------------------------------")
-    #if len(inventory) > 0:
-    inventory.print_items()
-    #else:
-        #print ("Your inventory is empty")
-    print ("----------------------------------")
+    print("\n----------------------------------")
+    if len(inventory.items) > 0:
+        inventory.print_items()
+    else:
+        print ("Your inventory is empty")
+    print("----------------------------------\n")
 
 
 def showCharacter():
-    print ("\n----------------------------------")
-    print ("HP: %d/%d" % (currentHP, maxHP))
-    print ("Gold: %d" % currentGold)
-    print ("----------------------------------")
+    print("\n----------------------------------")
+    print("HP: %d/%d" % (currentHP, maxHP))
+    print("Mana: %d/%d" % (currentMana, maxMana) )
+    print("Gold: %d" % currentGold)
+    print("XP: %d" % currentXP)
+    print("XP required for lvl %d: %d " % ((currentLvl + 1), (1000 - currentXP)))
+    print("Kills: %d" % totalKills)
+    print("----------------------------------\n")
 
 
 class Item(object):
@@ -70,12 +86,13 @@ class Item(object):
 
 
 class Monster(object):
-    def __init__(self, name, hp, armor, attack, gold, description, mid):
+    def __init__(self, name, hp, armor, attack, gold, xp, description, mid):
         self.name = name
         self.hp = hp
         self.armor = armor
         self.attack = attack
         self.gold = gold
+        self.xp = xp
         self.description = description
         self.mid = mid
 
@@ -91,63 +108,83 @@ class Inventory(object):
         del self.items[item]
 
     def print_items(self):
-        print('\t'.join(['Name', 'Atk', 'Arm', 'Val', 'Qty', 'Desc']))
+        print('\t'.join(['Name', 'DMG', 'AMR', 'VAL', 'QTY', 'DESC']))
         for item in self.items.values():
-            print('\t'.join([str(x) for x in [item.name, item.attack, item.armor, item.cost, item.quantity, item.description]]))
+            print('\t'.join(
+                [str(x) for x in [item.name, item.attack, item.armor, item.cost, item.quantity, item.description]]))
 
 
-class Fight(object):
-    def __init__(self):
-        self.monsters = {}
-
-    def fight_monster(self, monster):
-        self.monsters[monster.name] = monster
+def fight(monster):
         global currentHP
-
+        global totalKills
+        global currentXP
+        global currentGold
+        print("\nYou are fighting a %s!" % monster.name)
+        print("Description: %s" % monster.description)
         while monster.hp > 0:
-            print ("\nYou are fighting a %s!" % monster.name)
-            print ("\nWhat do you want to do?")
-            print ("'Attack' will attack the enemy.")
-            print ("'Counter' Attempt to counter the enemies attack.")
-            print ("'Flee' - Run away!")
-            fmove = raw_input(">").lower().split()
+            print("%s HP: %d" % (monster.name, monster.hp))
+            print("Your HP: %d" % currentHP)
+            print("\nWhat do you want to do?")
+            print("'Attack' will attack the enemy.")
+            print("'Counter' Attempt to counter the enemies attack.")
+            print("'Flee' - Run away!\n")
+            fightMove = input(">").lower().split()
 
-            if fmove[0] == "attack":
+            if fightMove[0] == "attack":
                 playerInitiative = random.randint(1, 20)
                 monsterInitiative = random.randint(1, 20)
                 print("\nYou roll initiative (d20): %d" % playerInitiative)
                 print("%s rolls initiative (d20): %d" % (monster.name, monsterInitiative))
                 if playerInitiative >= monsterInitiative:
-                    print ("You rolled a higher initiative!")
+                    print("You rolled a higher initiative!")
                     if "sword" in inventory.items:
-                        print ("\nYou swing with your sword for 5 damage!")
+                        print("\nYou swing with your sword for 5 damage!")
                         monster.hp -= 5
                     else:
-                        print ("\nYou swing with you fist for 1 damage!")
+                        print("\nYou swing with you fist for 1 damage!")
                         monster.hp -= 1
                     if monster.hp < 1:
-                        del self.monsters[monster]
-                        print ("You defeated the %s!" % monster.name)
+                        print("You defeated the %s!" % monster.name)
+                        currentXP += monster.xp
+                        currentGold += monster.gold
+                        totalKills += 1
+                        print("You gained %d XP and looted %d gold!\n" % (monster.xp, monster.gold))
                     else:
-                        print("\nThe %s hits you for %d damage" % (monster.name, monster.attack))
+                        print("\nThe %s hits you back for %d damage" % (monster.name, monster.attack))
                         currentHP -= monster.attack
 
                 else:
-                    print ("The %s rolled a higher initiative!" % monster.name)
+                    print("The %s rolled a higher initiative!" % monster.name)
                     print("\nThe %s hits you for %d damage" % (monster.name, monster.attack))
                     currentHP -= monster.attack
                     if currentHP < 1:
-                        print ("\nYou have fallen in combat to the %s" % monster.name)
+                        print("\nYou have fallen in combat to the %s" % monster.name)
                     if "sword" in inventory.items:
-                        print ("\nYou swing with your sword for 5 damage!")
+                        print("\nYou swing with your sword for 5 damage!")
                         monster.hp -= 5
                     else:
-                        print ("\nYou swing with you fist for 1 damage!")
+                        print("\nYou swing with you fist for 1 damage!")
                         monster.hp -= 1
-        del self.monsters[monster]
-        print ("You defeated the %s!" % monster.name)
+                    if monster.hp < 1:
+                        print("You defeated the %s!" % monster.name)
+                        currentXP += monster.xp
+                        currentGold += monster.gold
+                        totalKills += 1
+                        print("You gained %d XP and looted %d gold!\n" % (monster.xp, monster.gold))
 
-
+            elif fightMove[0] == "flee":
+                print("\nYou attempt to flee!")
+                roll = random.randint(1, 20)
+                print("You roll to escape (d20) DC=5 : %d" % roll)
+                if roll >= 5:
+                    print("You 'tactically retreat' from the %s\n" % monster.name)
+                    break
+                else:
+                    print("You fail to escape from the %s!\n" % monster.name)
+                    print("\nThe %s hits you for %d damage" % (monster.name, monster.attack))
+                    currentHP -= monster.attack
+                    if currentHP < 1:
+                        print("\nYou have fallen in combat to the %s" % monster.name)
 
 location = {
     1: {"name": "The Kings Road",
@@ -159,60 +196,76 @@ location = {
         "description": "Placeholder",
         "west": 1,
         "south": 4,
-        "item": "sword"},
+        "item": "sword",
+        "iid": 1},
 
     3: {"name": "The Black Horse Tavern",
         "description": "Placeholder",
         "north": 1,
-        "item": "beer"},
+        "item": "beer",
+        "iid": 100},
 
     4: {"name": "Cave - Lower Area",
         "description": "Placeholder",
         "north": 2,
-        "monster": "goblin"}
-    }
+        "monster": "goblin",
+        "mid": 1}
+}
 
 inventory = Inventory()
-monster = Fight()
 showInstructions()
+
+intro = True
 
 currentLocation = 1
 previewLocation = 0
 currentHP = 10
 maxHP = 10
 currentGold = 10
+currentMana = 10
+maxMana = 10
+totalKills = 0
+currentXP = 0
+currentLvl = 1
 
 while currentHP > 0:
-    showStatus()
+    if intro == True:
+        showStatus()
+        intro = False
 
-    move = raw_input(">").lower().split()
+    move = input(">").lower().split()
 
     if move[0] == "go":
         if move[1] in location[currentLocation]:
             currentLocation = location[currentLocation][move[1]]
+            showStatus()
         else:
-            print ("You cannot go that way")
+            print("You cannot go that way\n")
 
     elif move[0] == "get":
-        if "item" in location[currentLocation] and move[1] in location[currentLocation]["item"]:
+        if "iid" in location[currentLocation] and move[1] in location[currentLocation]["item"]:
             if move[1] == "sword":
-                inventory.add_item(Item('sword', 5, 1, 10, 1, 'A rusty looking sword', 1))
+                if location[currentLocation]["iid"] == 1:
+                    inventory.add_item(Item('sword', 5, 1, 10, 1, 'A rusty looking sword', 1))
+                else:
+                    print("You managed to pickup a magical vorpal sword, but it then disappears\n")
+                    break
             if move[1] == "beer":
                 inventory.add_item(Item('beer', 1, 0, 1, 1, 'A foaming mug of ale', 100))
-            print ("You picked up the " + move[1] + "!")
+            print("You picked up the " + move[1] + "!\n")
             del location[currentLocation]["item"]
         else:
-            print("Cannot pickup " + move[1] + "!")
+            print("There is no" + move[1] + " here!\n")
 
     elif move[0] == "fight":
         if currentLocation == 3:
-            print "You decide not to start a bar fight."
-        elif "monster" in location[currentLocation]:
-            if location[currentLocation]["monster"] == 'goblin':
-                monster.fight_monster(Monster('goblin', 10, 1, 3, 10, 'A weak looking goblin.', 1))
+            print("You decide not to start a bar fight.")
+        elif "mid" in location[currentLocation]:
+            if location[currentLocation]["mid"] == 1:
+                fight(Monster('goblin', 10, 1, 3, 10, 10, 'A weak looking goblin.', 1))
                 del location[currentLocation]["monster"]
         else:
-            print ("There is nothing to fight here")
+            print("There is nothing to fight here")
 
     elif move[0] == "map":
         showDirections()
@@ -226,18 +279,25 @@ while currentHP > 0:
     elif move[0] == "instructions":
         showInstructions()
 
+    elif move[0] == "look":
+        showStatus()
+
     elif move[0] == "drink":
-        if move[1] == "beer":
-            print "You drink the foaming mug of ale!"
-            inventory.remove_item('beer')
-        if move[1] == "sword":
-            print "You attempt to swallow the sword. You die."
-            quit(1)
+        if move[1] in inventory.items:
+            if move[1] == "beer":
+                print("You drink the foaming mug of ale!\n")
+                inventory.remove_item('beer')
+            if move[1] == "sword":
+                print("You swallow the sword, congratulations you succeeded in killing yourself!\n")
+                currentHP = 0
+        else:
+            print("You don't have a %r to drink!\n" % move[1])
+
     elif move[0] == "quit" or move[0] == "exit":
         quit(1)
 
     else:
-        print ("\nNot a valid move! Type 'instructions' to see valid moves.\n")
+        print("\nNot a valid move! Type 'instructions' to see valid moves.\n")
 
-print ("You have died")
+print("You have died")
 quit(1)
