@@ -1,4 +1,4 @@
-__author__ = 'Rob'
+__author__ = 'Robert Wilson - robwilson101@gmail.com'
 
 def showInstructions():
     print ("RPG Game")
