@@ -14,7 +14,7 @@ def showInstructions():
 def showStatus():
     #prints out current status
     print ("\nYou are currently in the %r" % location[currentLocation]["name"])
-    if "item*" in location[currentLocation]:
+    if "item" in location[currentLocation]:
         print ("You see a " + location[currentLocation]["item"]["name"])
 
 def showDirections():
