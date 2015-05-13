@@ -63,6 +63,7 @@ def showInventory():
         print("Your inventory is empty")
     print("----------------------------------\n")
 
+
 def showJournal():
     print("\n----------------------------------")
     if len(journal.journal) > 0:
@@ -84,14 +85,25 @@ def showCharacter():
 
 
 class Item(object):
-    def __init__(self, name, attack, armor, cost, quantity, description, iid):
+    def __init__(self, name, attack, armor, cost, quantity, description):
         self.name = name
         self.attack = attack
         self.armor = armor
         self.cost = cost
         self.quantity = quantity
         self.description = description
-        self.iid = iid
+
+
+class ListItem(object):
+    def __init__(self):
+
+
+    def list(self, itemid):
+        all_items = {
+            1: {"name": "Sword", "desc": "A rusty looking sword", "dmg": 5, "arm": 1, "val": 10},
+
+            }
+        return list(all_items[itemid].values())
 
 
 class Monster(object):
@@ -299,19 +311,18 @@ while currentHP > 0:
                 if "qid" in location[currentLocation]:
                     #Need to figure out how to populate journal with quest based on the quest ID!
                     #doquest(Quest())
-            else:
-                print("\nYou cannot go that way\n")
+                    print("")
+                else:
+                    print("\nYou cannot go that way\n")
 
         elif move[0] == "get":
             if "iid" in location[currentLocation] and move[1] in location[currentLocation]["item"]:
-                if move[1] == "sword":
-                    if location[currentLocation]["iid"] == 1:
-                        inventory.add_item(Item('sword', 5, 1, 10, 1, 'A rusty looking sword', 1))
-                    else:
-                        print("\nYou managed to pickup a magical vorpal sword, but it then disappears\n")
-                        break
-                if move[1] == "beer":
-                    inventory.add_item(Item('beer', 1, 0, 1, 1, 'A foaming mug of ale', 100))
+                inventory.add_item(Item(ListItem.list(1)))
+            else:
+                print("\nYou managed to pickup a magical vorpal sword, but it then disappears\n")
+                break
+            if move[1] == "beer":
+                inventory.add_item(Item('beer', 1, 0, 1, 1, 'A foaming mug of ale', 100))
                 print("\nYou picked up the " + move[1] + "!\n")
                 del location[currentLocation]["item"]
             else:
