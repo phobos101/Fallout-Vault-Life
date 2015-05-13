@@ -85,25 +85,12 @@ def showCharacter():
 
 
 class Item(object):
-    def __init__(self, name, attack, armor, cost, quantity, description):
+    def __init__(self, name, damage, armor, cost, description):
         self.name = name
-        self.attack = attack
+        self.damage = damage
         self.armor = armor
         self.cost = cost
-        self.quantity = quantity
         self.description = description
-
-
-class ListItem(object):
-    def __init__(self):
-
-
-    def list(self, itemid):
-        all_items = {
-            1: {"name": "Sword", "desc": "A rusty looking sword", "dmg": 5, "arm": 1, "val": 10},
-
-            }
-        return list(all_items[itemid].values())
 
 
 class Monster(object):
@@ -139,10 +126,10 @@ class Inventory(object):
         del self.items[item]
 
     def print_items(self):
-        print('\t'.join(['Name', 'DMG', 'AMR', 'VAL', 'QTY', 'DESC']))
+        print('\t'.join(['Name', 'DMG', 'AMR', 'VAL', 'DESC']))
         for item in self.items.values():
             print('\t'.join(
-                [str(x) for x in [item.name, item.attack, item.armor, item.cost, item.quantity, item.description]]))
+                [str(x) for x in [item.name, item.damage, item.armor, item.cost, item.description]]))
 
 
 class Journal(object):
@@ -208,15 +195,15 @@ def fight(monster):
                         totalKills += 1
                         print("\nYou gained %d XP and looted %d gold!\n" % (monster.xp, monster.gold))
                     else:
-                        print("\nThe %s hits you back for %d damage" % (monster.name, monster.attack))
-                        currentHP -= monster.attack
+                        print("\nThe %s hits you back for %d damage" % (monster.name, monster.damage))
+                        currentHP -= monster.damage
                         if currentHP < 1:
                             print("\nYou have fallen in combat to the %s" % monster.name)
 
                 else:
                     print("The %s rolled a higher initiative!" % monster.name)
-                    print("\nThe %s hits you for %d damage" % (monster.name, monster.attack))
-                    currentHP -= monster.attack
+                    print("\nThe %s hits you for %d damage" % (monster.name, monster.damage))
+                    currentHP -= monster.damage
                     if currentHP < 1:
                         print("\nYou have fallen in combat to the %s" % monster.name)
                         break
@@ -242,8 +229,8 @@ def fight(monster):
                     break
                 else:
                     print("\nYou fail to escape from the %s!\n" % monster.name)
-                    print("\nThe %s hits you for %d damage" % (monster.name, monster.attack))
-                    currentHP -= monster.attack
+                    print("\nThe %s hits you for %d damage" % (monster.name, monster.damage))
+                    currentHP -= monster.damage
                     if currentHP < 1:
                         print("\nYou have fallen in combat to the %s" % monster.name)
 
@@ -296,6 +283,12 @@ totalKills = 0
 currentXP = 0
 currentLvl = 1
 
+all_items = {
+    1: {"name": "Sword", "dmg": 5, "arm": 1, "val": 10, "desc": "A rusty looking sword"},
+    100: {"name": "Beer", "desc": "A foaming mug of ale", "dmg": 1, "arm": 1, "val": 1}
+    }
+
+
 while currentHP > 0:
     if intro == True:
         showStatus()
@@ -312,21 +305,18 @@ while currentHP > 0:
                     #Need to figure out how to populate journal with quest based on the quest ID!
                     #doquest(Quest())
                     print("")
-                else:
-                    print("\nYou cannot go that way\n")
+            else:
+                print("\nYou cannot go that way\n")
 
         elif move[0] == "get":
             if "iid" in location[currentLocation] and move[1] in location[currentLocation]["item"]:
-                inventory.add_item(Item(ListItem.list(1)))
-            else:
-                print("\nYou managed to pickup a magical vorpal sword, but it then disappears\n")
-                break
-            if move[1] == "beer":
-                inventory.add_item(Item('beer', 1, 0, 1, 1, 'A foaming mug of ale', 100))
-                print("\nYou picked up the " + move[1] + "!\n")
+                iid = location[currentLocation]["iid"]
+                inventory.add_item(Item(all_items[iid]["name"], all_items[iid]["dmg"], all_items[iid]["arm"],
+                                        all_items[iid]["val"], all_items[iid]["desc"]))
+                print("%s added to inventory!\n" % all_items[iid]["name"])
                 del location[currentLocation]["item"]
             else:
-                print("\nThere is no" + move[1] + " here!\n")
+                print("\nThere is no %s here!\n" % move[1])
 
         elif move[0] == "fight":
             if currentLocation == 3:
