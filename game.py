@@ -267,6 +267,15 @@ location = {
         "qid": 1}
 }
 
+all_items = {
+    1: {"name": "Sword", "dmg": 5, "arm": 1, "val": 10, "desc": "A rusty looking sword"},
+    100: {"name": "Beer", "desc": "A foaming mug of ale", "dmg": 1, "arm": 1, "val": 1}
+    }
+
+all_monsters = {
+    1: {"name": "Goblin", "hp": 10, "arm": 1, "damage": 3, "gold": 10, "xp": 10, "desc": "A weak looking goblin"}
+    }
+
 inventory = Inventory()
 showInstructions()
 journal = Journal()
@@ -283,12 +292,6 @@ maxMana = 10
 totalKills = 0
 currentXP = 0
 currentLvl = 1
-
-all_items = {
-    1: {"name": "Sword", "dmg": 5, "arm": 1, "val": 10, "desc": "A rusty looking sword"},
-    100: {"name": "Beer", "desc": "A foaming mug of ale", "dmg": 1, "arm": 1, "val": 1}
-    }
-
 
 while currentHP > 0:
     if intro == True:
@@ -322,11 +325,16 @@ while currentHP > 0:
         elif move[0] == "fight":
             if currentLocation == 3:
                 print("\nYou decide not to start a bar fight.\n")
-            elif "mid" in location[currentLocation]:
-                if location[currentLocation]["mid"] == 1:
-                    fight(Monster('goblin', 10, 1, 3, 10, 10, 'A weak looking goblin.'))
-                    del location[currentLocation]["monster"]
-                    inventory.add_item(Item('Alerics Medallion', 0, 0, 50, 'A shiny medallion with the icon of Pelor embossed onto it. It belomgs to Aleric.'))
+            elif "mid" in location[currentLocation] and move[1] in location[currentLocation]["monster"]:
+                mid = location[currentLocation]["mid"]
+                fight(Monster(all_monsters[mid]["name"],all_monsters[mid]["hp"], all_monsters[mid]["arm"],
+                              all_monsters[mid]["damage"], all_monsters[mid]["gold"],all_monsters[mid]["xp"],
+                              all_monsters[mid]["desc"]))
+                del location[currentLocation]["monster"]
+
+                if mid == 1:
+                    inventory.add_item(Item('Alerics Medallion', 0, 0, 50, 'A shiny medallion with the icon of Pelor '
+                                                                           'embossed onto it. It belomgs to Aleric.'))
                     print("\n[+] You found Alerics medallion!\n")
             else:
                 print("\nThere is nothing to fight here\n")
