@@ -94,24 +94,22 @@ class Item(object):
 
 
 class Monster(object):
-    def __init__(self, name, hp, armor, attack, gold, xp, description, mid):
+    def __init__(self, name, hp, armor, damage, gold, xp, description):
         self.name = name
         self.hp = hp
         self.armor = armor
-        self.attack = attack
+        self.damage = damage
         self.gold = gold
         self.xp = xp
         self.description = description
-        self.mid = mid
 
 
 class Quest(object):
-    def __init__(self, name, gold, xp, description, qid, progress):
+    def __init__(self, name, gold, xp, description, progress):
         self.name = name
         self.gold = gold
         self.xp = xp
         self.description = description
-        self.qid = qid
         self.progress = progress
 
 
@@ -151,7 +149,7 @@ def doquest(quest):
         print("\n----------------------------------")
         print("Quest 1 - Alerics Medallion")
         print("----------------------------------\n")
-        journal.new_quest(Quest('Alerics Medallion', 10, 50, 'I must find and retrieve Alerics medallion', 1,
+        journal.new_quest(Quest('Alerics Medallion', 10, 50, 'I must find and retrieve Alerics medallion',
                                 'Started'))
         print("")
 
@@ -182,7 +180,7 @@ def fight(monster):
                 print("%s rolls initiative (d20): %d" % (monster.name, monsterInitiative))
                 if playerInitiative >= monsterInitiative:
                     print("You rolled a higher initiative!")
-                    if "sword" in inventory.items:
+                    if "Sword" in inventory.items:
                         print("\nYou swing with your sword for 5 damage!")
                         monster.hp -= 5
                     else:
@@ -207,7 +205,7 @@ def fight(monster):
                     if currentHP < 1:
                         print("\nYou have fallen in combat to the %s" % monster.name)
                         break
-                    if "sword" in inventory.items:
+                    if "Sword" in inventory.items:
                         print("\nYou swing with your sword for 5 damage!")
                         monster.hp -= 5
                     else:
@@ -233,6 +231,9 @@ def fight(monster):
                     currentHP -= monster.damage
                     if currentHP < 1:
                         print("\nYou have fallen in combat to the %s" % monster.name)
+
+            else:
+                (print("\nNot a valid move! Type 'instructions' to see valid moves.\n"))
 
 location = {
     1: {"name": "The Kings Road",
@@ -313,7 +314,7 @@ while currentHP > 0:
                 iid = location[currentLocation]["iid"]
                 inventory.add_item(Item(all_items[iid]["name"], all_items[iid]["dmg"], all_items[iid]["arm"],
                                         all_items[iid]["val"], all_items[iid]["desc"]))
-                print("%s added to inventory!\n" % all_items[iid]["name"])
+                print("\n%s added to inventory!\n" % all_items[iid]["name"])
                 del location[currentLocation]["item"]
             else:
                 print("\nThere is no %s here!\n" % move[1])
@@ -323,9 +324,9 @@ while currentHP > 0:
                 print("\nYou decide not to start a bar fight.\n")
             elif "mid" in location[currentLocation]:
                 if location[currentLocation]["mid"] == 1:
-                    fight(Monster('goblin', 10, 1, 3, 10, 10, 'A weak looking goblin.', 1))
+                    fight(Monster('goblin', 10, 1, 3, 10, 10, 'A weak looking goblin.'))
                     del location[currentLocation]["monster"]
-                    inventory.add_item(Item('Alerics Medallion', 0, 0, 20, 1, 'A shiny medallion with the icon of Pelor embossed onto it. It belomgs to Aleric.', 50))
+                    inventory.add_item(Item('Alerics Medallion', 0, 0, 50, 'A shiny medallion with the icon of Pelor embossed onto it. It belomgs to Aleric.'))
                     print("\n[+] You found Alerics medallion!\n")
             else:
                 print("\nThere is nothing to fight here\n")
