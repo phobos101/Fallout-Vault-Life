@@ -1,5 +1,5 @@
 __author__ = 'Rob'
-
+"""
 Items
 ID           Name              Value
 1            rusty sword       10
@@ -8,7 +8,7 @@ ID           Name              Value
 Monsters
 ID           Name
 1            weak goblin
-
+"""
 
 class Items(object):
     def __init__(self, iid):
