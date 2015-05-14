@@ -7,11 +7,11 @@ def showInstructions():
     print("Master of Avalon")
     print("========")
     print("Commands:")
-    print("'Go [direction]' e.g 'Go east'")
-    print("'Get [item]' e.g 'Get Sword")
+    print("'Go [direction]' - Travel to another area")
+    print("'Get [item]' - Pickup an item")
     print("'Map' - See where you are and where uou can go")
     print("'Look' - Get information about your surroundings")
-    print("'Fight' - Fight the monster")
+    print("'Fight [monster]' - Fight the monster")
     print("'Inventory' - Open your inventory")
     print("'Sheet' - See your character sheet (HP, mana, etc)")
     print("'Journal' - See your quest journal")
@@ -58,9 +58,14 @@ def showDirections():
 def showInventory():
     print("\n----------------------------------")
     if len(inventory.items) > 0:
-        inventory.print_items()
+        inventory.print_inventory()
     else:
         print("Your inventory is empty")
+    print("----------------------------------")
+    if len(inventory.equipped) > 0:
+        inventory.print_equipped()
+    else:
+        print("Nothing equipped")
     print("----------------------------------\n")
 
 
@@ -85,12 +90,14 @@ def showCharacter():
 
 
 class Item(object):
-    def __init__(self, name, damage, armor, cost, description):
+    def __init__(self, name, damage, bonus, armor, cost, description, itemid):
         self.name = name
         self.damage = damage
+        self.bonus = bonus
         self.armor = armor
         self.cost = cost
         self.description = description
+        self.itemid = itemid
 
 
 class Monster(object):
@@ -116,18 +123,30 @@ class Quest(object):
 class Inventory(object):
     def __init__(self):
         self.items = {}
+        self.equipped = {}
 
     def add_item(self, item):
-        self.items[item.name] = item
+        self.items[item.itemid] = item
 
-    def remove_item(self, item):
+    def drop_item(self, item):
         del self.items[item]
 
-    def print_items(self):
+    def equip_item(self, item):
+        self.equipped[item.itemid] = item
+        del self.items[item]
+
+    def unequip_item(self, item):
+        self.items[item.itemid] = item
+        del self.equipped[item]
+
+    def print_inventory(self):
         print('\t'.join(['Name', 'DMG', 'AMR', 'VAL', 'DESC']))
         for item in self.items.values():
             print('\t'.join(
                 [str(x) for x in [item.name, item.damage, item.armor, item.cost, item.description]]))
+
+    def print_equipped(self):
+        print("Weapon: %s" % self.equipped.values(self.item.name))
 
 
 class Journal(object):
@@ -174,6 +193,8 @@ def fight(monster):
             fightMove = input(">").lower().split()
 
             if fightMove[0] == "attack":
+                playerdamage = random.randint(1, 2)
+                monsterdamage = random.randint(1, monster.damage)
                 playerInitiative = random.randint(1, 20)
                 monsterInitiative = random.randint(1, 20)
                 print("\nYou roll initiative (d20): %d" % playerInitiative)
@@ -181,11 +202,12 @@ def fight(monster):
                 if playerInitiative >= monsterInitiative:
                     print("You rolled a higher initiative!")
                     if "Sword" in inventory.items:
-                        print("\nYou swing with your sword for 5 damage!")
-                        monster.hp -= 5
+                        playerdamage = random.randint(1, 4)
+                        print("\nYou swing with your sword for (1d4): %d damage!" % playerdamage)
+                        monster.hp -= playerdamage
                     else:
-                        print("\nYou swing with you fist for 1 damage!")
-                        monster.hp -= 1
+                        print("\nYou swing with you fist for (1d2): %d damage!" % playerdamage)
+                        monster.hp -= playerdamage
                     if monster.hp < 1:
                         print("\nYou defeated the %s!" % monster.name)
                         currentXP += monster.xp
@@ -193,24 +215,28 @@ def fight(monster):
                         totalKills += 1
                         print("\nYou gained %d XP and looted %d gold!\n" % (monster.xp, monster.gold))
                     else:
-                        print("\nThe %s hits you back for %d damage" % (monster.name, monster.damage))
-                        currentHP -= monster.damage
+                        print("\nThe %s hits you back for (1d%d): %d damage" % (monster.name, monster.damage,
+                                                                                monsterdamage))
+                        currentHP -= monsterdamage
                         if currentHP < 1:
                             print("\nYou have fallen in combat to the %s" % monster.name)
+                            break
 
                 else:
                     print("The %s rolled a higher initiative!" % monster.name)
-                    print("\nThe %s hits you for %d damage" % (monster.name, monster.damage))
-                    currentHP -= monster.damage
+                    print("\nThe %s hits you for (1d%d): %d damage" % (monster.name, monster.damage,
+                                                                       monsterdamage))
+                    currentHP -= monsterdamage
                     if currentHP < 1:
                         print("\nYou have fallen in combat to the %s" % monster.name)
                         break
                     if "Sword" in inventory.items:
-                        print("\nYou swing with your sword for 5 damage!")
-                        monster.hp -= 5
+                        playerdamage = random.randint(1, 4)
+                        print("\nYou swing with your sword for (1d4): %d damage!" % playerdamage)
+                        monster.hp -= playerdamage
                     else:
-                        print("\nYou swing with you fist for 1 damage!")
-                        monster.hp -= 1
+                        print("\nYou swing with you fist for (1d2): %d damage!" % playerdamage)
+                        monster.hp -= playerdamage
                     if monster.hp < 1:
                         print("\nYou defeated the %s!" % monster.name)
                         currentXP += monster.xp
@@ -268,8 +294,11 @@ location = {
 }
 
 all_items = {
-    1: {"name": "Sword", "dmg": 5, "arm": 1, "val": 10, "desc": "A rusty looking sword"},
-    100: {"name": "Beer", "desc": "A foaming mug of ale", "dmg": 1, "arm": 1, "val": 1}
+    1: {"name": "Sword", "dmg": 4, "bns": 0, "arm": 1, "val": 10, "desc": "A rusty looking sword", "iid": 1},
+    2: {"name": "Sword", "dmg": 8, "bns": 0, "arm": 1, "val": 30, "desc": "A standard iron sword", "iid": 2},
+    3: {"name": "Sword", "dmg": 8, "bns": 1, "arm": 1, "val": 10, "desc": "This sword hums with mysterious energy",
+        "iid": 3},
+    100: {"name": "Beer", "bns": 0, "desc": "A foaming mug of ale", "dmg": 1, "arm": 1, "val": 1, "iid": 100}
     }
 
 all_monsters = {
@@ -315,8 +344,9 @@ while currentHP > 0:
         elif move[0] == "get":
             if "iid" in location[currentLocation] and move[1] in location[currentLocation]["item"]:
                 iid = location[currentLocation]["iid"]
-                inventory.add_item(Item(all_items[iid]["name"], all_items[iid]["dmg"], all_items[iid]["arm"],
-                                        all_items[iid]["val"], all_items[iid]["desc"]))
+                inventory.add_item(Item(all_items[iid]["name"], all_items[iid]["dmg"], all_items[iid]["bns"],
+                                        all_items[iid]["arm"], all_items[iid]["val"], all_items[iid]["desc"],
+                                        all_items[iid]["iid"]))
                 print("\n%s added to inventory!\n" % all_items[iid]["name"])
                 del location[currentLocation]["item"]
             else:
@@ -361,7 +391,7 @@ while currentHP > 0:
             if move[1] in inventory.items:
                 if move[1] == "beer":
                     print("\nYou drink the foaming mug of ale!")
-                    inventory.remove_item('beer')
+                    inventory.drop_item('beer')
                 if move[1] == "sword":
                     print("\nYou swallow the sword, congratulations you succeeded in killing yourself!\n")
                     currentHP = 0
@@ -379,3 +409,12 @@ while currentHP > 0:
 
 print("\nGAME OVER")
 quit(1)
+
+"""
+elif move[0] == "equip":
+    print(inventory.items)
+    if 1 in inventory.items.keys():
+        inventory.equip_item()
+        print("Success")
+    else:
+        print("Failed")"""
