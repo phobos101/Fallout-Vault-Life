@@ -81,7 +81,8 @@ def showJournal():
 def showCharacter():
     print("\n----------------------------------")
     print("HP: %d/%d" % (currentHP, maxHP))
-    print("Mana: %d/%d" % (currentMana, maxMana) )
+    print("AC: %d" % ac)
+    #print("Mana: %d/%d" % (currentMana, maxMana) )
     print("Gold: %d" % currentGold)
     print("XP: %d" % currentXP)
     print("XP required for lvl %d: %d " % ((currentLvl + 1), (1000 - currentXP)))
@@ -141,7 +142,7 @@ class Inventory(object):
         del self.equipped[item]
 
     def print_inventory(self):
-        print('\t'.join(['Name', 'DMG', 'AMR', 'VAL', 'DESC']))
+        print('\t'.join(['Name', 'Damage', 'AC', 'Value', 'Description']))
         for item in self.items.values():
             print('\t'.join(
                 [str(x) for x in [item.name, item.damage, item.armor, item.cost, item.description]]))
@@ -194,8 +195,10 @@ def fight(monster):
             fightMove = input(">").lower().split()
 
             if fightMove[0] == "attack":
-                playerdamage = random.randint(1, 2)
+                playerdamage = random.randint(1, 4)
                 monsterdamage = random.randint(1, monster.damage)
+                playerattack = random.randint(1, 20)
+                monsterattack = random.randint(1, 20)
                 playerInitiative = random.randint(1, 20)
                 monsterInitiative = random.randint(1, 20)
                 print("\nYou roll initiative (d20): %d" % playerInitiative)
@@ -203,48 +206,166 @@ def fight(monster):
                 if playerInitiative >= monsterInitiative:
                     print("You rolled a higher initiative!")
                     if any(range(99)) in inventory.items:
-                        playerdamage = random.randint(1, 4)
-                        print("\nYou swing with your sword for (1d4): %d damage!" % playerdamage)
-                        monster.hp -= playerdamage
+                        playerdamage = random.randint(1, 6)
+                        print("\nRolling to attack (1d20): %d vs. AC=%d" % (playerattack, monster.armor))
+                        if playerattack >= monster.armor:
+                            print("Hit!")
+                            print("You swing with your sword for (1d4): %d damage!" % playerdamage)
+                            monster.hp -= playerdamage
+                            if monster.hp < 1:
+                                print("\nYou defeated the %s!" % monster.name)
+                                currentXP += monster.xp
+                                currentGold += monster.gold
+                                totalKills += 1
+                                print("You gained %d XP and looted %d gold!\n" % (monster.xp, monster.gold))
+                                return True
+                            else:
+                                print("\nThe %s rolls to attack (1d20): %d vs. AC=%d" % (monster.name, monsterattack, ac))
+                                if monsterattack >= ac:
+                                    print("Hit!")
+                                    print("The %s hits you  for (1d%d): %d damage"
+                                          % (monster.name, monster.damage, monsterdamage))
+                                    currentHP -= monsterdamage
+                                    if currentHP < 1:
+                                        print("\nYou have fallen in combat to the %s" % monster.name)
+                                        break
+                                else:
+                                    print("Miss!")
+                        else:
+                            print("Miss!")
+                            print("\nThe %s rolls to attack (1d20): %d vs. AC=%d" % (monster.name, monsterattack, ac))
+                            if monsterattack >= ac:
+                                print("Hit!")
+                                print("The %s hits you for (1d%d): %d damage"
+                                      % (monster.name, monster.damage, monsterdamage))
+                                currentHP -= monsterdamage
+                                if currentHP < 1:
+                                    print("\nYou have fallen in combat to the %s" % monster.name)
+                                    break
+                            else:
+                                print("Miss!")
                     else:
-                        print("\nYou swing with you fist for (1d2): %d damage!" % playerdamage)
-                        monster.hp -= playerdamage
-                    if monster.hp < 1:
-                        print("\nYou defeated the %s!" % monster.name)
-                        currentXP += monster.xp
-                        currentGold += monster.gold
-                        totalKills += 1
-                        del all_monsters[monster.mid]
-                        print("You gained %d XP and looted %d gold!\n" % (monster.xp, monster.gold))
-                    else:
-                        print("\nThe %s hits you back for (1d%d): %d damage" % (monster.name, monster.damage,
-                                                                                monsterdamage))
-                        currentHP -= monsterdamage
-                        if currentHP < 1:
-                            print("\nYou have fallen in combat to the %s" % monster.name)
-                            break
+                        print("\nRolling to attack (1d20): %d vs. AC=%d" % (playerattack, monster.armor))
+                        if playerattack >= monster.armor:
+                            print("Hit!")
+                            print("You swing with your fist for (1d4): %d damage!" % playerdamage)
+                            monster.hp -= playerdamage
+                            if monster.hp < 1:
+                                print("\nYou defeated the %s!" % monster.name)
+                                currentXP += monster.xp
+                                currentGold += monster.gold
+                                totalKills += 1
+                                print("You gained %d XP and looted %d gold!\n" % (monster.xp, monster.gold))
+                                return True
+                            else:
+                                print("\nThe %s rolls to attack (1d20): %d vs. AC=%d" % (monster.name, monsterattack, ac))
+                                if monsterattack >= ac:
+                                    print("Hit!")
+                                    print("The %s hits you for (1d%d): %d damage"
+                                          % (monster.name, monster.damage, monsterdamage))
+                                    currentHP -= monsterdamage
+                                    if currentHP < 1:
+                                        print("\nYou have fallen in combat to the %s" % monster.name)
+                                        break
+                                else:
+                                    print("Miss!")
+                        else:
+                            print("Miss!")
+                            print("\nThe %s rolls to attack (1d20): %d vs. AC=%d" % (monster.name, monsterattack, ac))
+                            if monsterattack >= ac:
+                                print("Hit!")
+                                print("The %s hits you for (1d%d): %d damage"
+                                      % (monster.name, monster.damage, monsterdamage))
+                                currentHP -= monsterdamage
+                                if currentHP < 1:
+                                    print("\nYou have fallen in combat to the %s" % monster.name)
+                                    break
+                            else:
+                                print("Miss!")
 
                 else:
                     print("The %s rolled a higher initiative!" % monster.name)
-                    print("\nThe %s hits you for (1d%d): %d damage" % (monster.name, monster.damage,
-                                                                       monsterdamage))
-                    currentHP -= monsterdamage
-                    if currentHP < 1:
-                        print("\nYou have fallen in combat to the %s" % monster.name)
-                        break
                     if any(range(99)) in inventory.items:
-                        playerdamage = random.randint(1, 4)
-                        print("\nYou swing with your sword for (1d4): %d damage!" % playerdamage)
-                        monster.hp -= playerdamage
+                        playerdamage = random.randint(1, 6)
+                        print("\nThe %s rolls to attack (1d20): %d vs. AC=%d" % (monster.name, monsterattack, ac))
+                        if monsterattack >= ac:
+                            print("Hit!")
+                            print("The %s hits you  for (1d%d): %d damage"
+                                  % (monster.name, monster.damage, monsterdamage))
+                            currentHP -= monsterdamage
+                            if currentHP < 1:
+                                print("\nYou have fallen in combat to the %s" % monster.name)
+                                break
+                            else:
+                                print("\nRolling to attack (1d20): %d vs. AC=%d" % (playerattack, monster.armor))
+                                if playerattack >= monster.armor:
+                                    print("Hit!")
+                                    print("You swing with your sword for (1d6): %d damage!" % playerdamage)
+                                    monster.hp -= playerdamage
+                                    if monster.hp < 1:
+                                        print("\nYou defeated the %s!" % monster.name)
+                                        currentXP += monster.xp
+                                        currentGold += monster.gold
+                                        totalKills += 1
+                                        print("You gained %d XP and looted %d gold!\n" % (monster.xp, monster.gold))
+                                        return True
+                                else:
+                                    print("Miss!")
+                        else:
+                            print("Miss!")
+                            print("\nRolling to attack (1d20): %d vs. AC=%d" % (playerattack, monster.armor))
+                            if playerattack >= monster.armor:
+                                print("Hit!")
+                                print("You swing with your sword for (1d6): %d damage!" % playerdamage)
+                                monster.hp -= playerdamage
+                                if monster.hp < 1:
+                                    print("\nYou defeated the %s!" % monster.name)
+                                    currentXP += monster.xp
+                                    currentGold += monster.gold
+                                    totalKills += 1
+                                    print("You gained %d XP and looted %d gold!\n" % (monster.xp, monster.gold))
+                                    return True
+                            else:
+                                print("Miss!")
                     else:
-                        print("\nYou swing with you fist for (1d2): %d damage!" % playerdamage)
-                        monster.hp -= playerdamage
-                    if monster.hp < 1:
-                        print("\nYou defeated the %s!" % monster.name)
-                        currentXP += monster.xp
-                        currentGold += monster.gold
-                        totalKills += 1
-                        print("You gained %d XP and looted %d gold!\n" % (monster.xp, monster.gold))
+                        print("\nThe %s rolls to attack (1d20): %d vs. AC=%d" % (monster.name, monsterattack, ac))
+                        if monsterattack >= ac:
+                            print("Hit!")
+                            print("The %s hits you  for (1d%d): %d damage"
+                                  % (monster.name, monster.damage, monsterdamage))
+                            currentHP -= monsterdamage
+                            if currentHP < 1:
+                                print("\nYou have fallen in combat to the %s" % monster.name)
+                                break
+                            else:
+                                print("\nRolling to attack (1d20): %d vs. AC=%d" % (playerattack, monster.armor))
+                                if playerattack >= monster.armor:
+                                    print("Hit!")
+                                    print("You swing with your fist for (1d4): %d damage!" % playerdamage)
+                                    monster.hp -= playerdamage
+                                    if monster.hp < 1:
+                                        print("\nYou defeated the %s!" % monster.name)
+                                        currentXP += monster.xp
+                                        currentGold += monster.gold
+                                        totalKills += 1
+                                        print("You gained %d XP and looted %d gold!\n" % (monster.xp, monster.gold))
+                                        return True
+                                else:
+                                    print("Miss!")
+                        else:
+                            print("Miss!")
+                            print("\nRolling to attack (1d20): %d vs. AC=%d" % (playerattack, monster.armor))
+                            if playerattack >= monster.armor:
+                                print("Hit!")
+                                print("You swing with your fist for (1d4): %d damage!" % playerdamage)
+                                monster.hp -= playerdamage
+                                if monster.hp < 1:
+                                    print("\nYou defeated the %s!" % monster.name)
+                                    currentXP += monster.xp
+                                    currentGold += monster.gold
+                                    totalKills += 1
+                                    print("You gained %d XP and looted %d gold!\n" % (monster.xp, monster.gold))
+                                    return True
 
             elif fightMove[0] == "flee":
                 print("\nYou attempt to flee!")
@@ -252,14 +373,14 @@ def fight(monster):
                 print("You roll to escape (d20) DC=5 : %d" % roll)
                 if roll >= 5:
                     print("\nYou 'tactically retreat' from the %s\n" % monster.name)
-                    break
+                    return False
                 else:
                     print("\nYou fail to escape from the %s!\n" % monster.name)
                     print("\nThe %s hits you for %d damage" % (monster.name, monster.damage))
                     currentHP -= monster.damage
                     if currentHP < 1:
                         print("\nYou have fallen in combat to the %s" % monster.name)
-
+                        break
             else:
                 (print("\nNot a valid move! Type 'instructions' to see valid moves.\n"))
 
@@ -296,19 +417,19 @@ location = {
 }
 
 all_items = {
-    1: {"name": "Sword", "dmg": 4, "bns": 0, "arm": 1, "val": 10, "desc": "A rusty looking sword", "iid": 1},
-    2: {"name": "Sword", "dmg": 8, "bns": 0, "arm": 1, "val": 30, "desc": "A standard iron sword", "iid": 2},
-    3: {"name": "Sword", "dmg": 8, "bns": 1, "arm": 1, "val": 10, "desc": "This sword hums with mysterious energy",
+    1: {"name": "Sword", "dmg": 6, "bns": 0, "arm": 0, "val": 10, "desc": "A rusty looking sword", "iid": 1},
+    2: {"name": "Sword", "dmg": 8, "bns": 0, "arm": 0, "val": 30, "desc": "A standard iron sword", "iid": 2},
+    3: {"name": "Sword", "dmg": 8, "bns": 1, "arm": 0, "val": 100, "desc": "This sword hums with mysterious energy",
         "iid": 3},
-    100: {"name": "Beer", "bns": 0, "desc": "A foaming mug of ale", "dmg": 1, "arm": 1, "val": 1, "iid": 100},
-    1000: {"name": 'Alerics Medallion', "dmg": 0, "bns": 0, "arm": 0, "val": 50, "desc":
+    100: {"name": "Beer", "bns": 0, "desc": "A foaming mug of ale", "dmg": 1, "arm": 0, "val": 1, "iid": 100},
+    1000: {"name": 'Alerics Medallion', "dmg": 0, "bns": 0, "arm": 1, "val": 50, "desc":
            'A shiny medallion with the icon of Pelor embossed onto it. It belongs to Aleric.', "iid": 1000}
     }
 
 all_monsters = {
-    1: {"name": "Goblin", "hp": 10, "arm": 1, "damage": 3, "gold": 10, "xp": 10, "desc": "A weak looking goblin",
+    1: {"name": "Goblin", "hp": 10, "arm": 10, "damage": 3, "gold": 10, "xp": 10, "desc": "A weak looking goblin",
         "mid": 1},
-    2: {"name": "Goblin", "hp": 15, "arm": 2, "damage": 6, "gold": 13, "xp": 20, "desc": "A goblin", "mid": 2}
+    2: {"name": "Goblin", "hp": 15, "arm": 12, "damage": 6, "gold": 13, "xp": 20, "desc": "A goblin", "mid": 2}
     }
 
 inventory = Inventory()
@@ -319,11 +440,12 @@ intro = True
 
 currentLocation = 1
 previewLocation = 0
-currentHP = 10
-maxHP = 10
+currentHP = 20
+maxHP = 20
+ac = 10
 currentGold = 10
-currentMana = 10
-maxMana = 10
+#currentMana = 10
+#maxMana = 10
 totalKills = 0
 currentXP = 0
 currentLvl = 1
@@ -363,18 +485,18 @@ while currentHP > 0:
                 print("\nYou decide not to start a bar fight.\n")
             elif "mid" in location[currentLocation] and move[1] in location[currentLocation]["monster"]:
                 mid = location[currentLocation]["mid"]
-                fight(Monster(all_monsters[mid]["name"],all_monsters[mid]["hp"], all_monsters[mid]["arm"],
+                if fight(Monster(all_monsters[mid]["name"],all_monsters[mid]["hp"], all_monsters[mid]["arm"],
                               all_monsters[mid]["damage"], all_monsters[mid]["gold"],all_monsters[mid]["xp"],
-                              all_monsters[mid]["desc"], all_monsters[mid]["mid"]))
-                del location[currentLocation]["monster"]
-                if mid == 1:
-                    del all_monsters[1]
+                              all_monsters[mid]["desc"], all_monsters[mid]["mid"])) == True:
+                    del location[currentLocation]["monster"]
+                    if mid == 1:
+                        del all_monsters[1]
 
                 if 1 not in all_monsters.keys():
                     inventory.add_item(Item('Alerics Medallion', 0, 0, 0, 50,
                                             'A shiny medallion with the icon of Pelor embossed onto it.'
                                             ' It belongs to Aleric.', 1000))
-                    print("\n[+] You found Alerics medallion!\n")
+                    print("[+] You found Alerics medallion!\n")
             else:
                 print("\nThere is nothing to fight here\n")
 
