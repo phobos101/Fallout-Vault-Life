@@ -72,7 +72,7 @@ def showInventory():
 def showJournal():
     print("\n----------------------------------")
     if len(journal.journal) > 0:
-        journal.print_items()
+        journal.print_journal()
     else:
         print("Your journal is empty")
     print("----------------------------------\n")
@@ -101,7 +101,7 @@ class Item(object):
 
 
 class Monster(object):
-    def __init__(self, name, hp, armor, damage, gold, xp, description):
+    def __init__(self, name, hp, armor, damage, gold, xp, description, mid):
         self.name = name
         self.hp = hp
         self.armor = armor
@@ -109,6 +109,7 @@ class Monster(object):
         self.gold = gold
         self.xp = xp
         self.description = description
+        self.mid = mid
 
 
 class Quest(object):
@@ -201,7 +202,7 @@ def fight(monster):
                 print("%s rolls initiative (d20): %d" % (monster.name, monsterInitiative))
                 if playerInitiative >= monsterInitiative:
                     print("You rolled a higher initiative!")
-                    if "Sword" in inventory.items:
+                    if any(range(99)) in inventory.items:
                         playerdamage = random.randint(1, 4)
                         print("\nYou swing with your sword for (1d4): %d damage!" % playerdamage)
                         monster.hp -= playerdamage
@@ -213,7 +214,8 @@ def fight(monster):
                         currentXP += monster.xp
                         currentGold += monster.gold
                         totalKills += 1
-                        print("\nYou gained %d XP and looted %d gold!\n" % (monster.xp, monster.gold))
+                        del all_monsters[monster.mid]
+                        print("You gained %d XP and looted %d gold!\n" % (monster.xp, monster.gold))
                     else:
                         print("\nThe %s hits you back for (1d%d): %d damage" % (monster.name, monster.damage,
                                                                                 monsterdamage))
@@ -230,7 +232,7 @@ def fight(monster):
                     if currentHP < 1:
                         print("\nYou have fallen in combat to the %s" % monster.name)
                         break
-                    if "Sword" in inventory.items:
+                    if any(range(99)) in inventory.items:
                         playerdamage = random.randint(1, 4)
                         print("\nYou swing with your sword for (1d4): %d damage!" % playerdamage)
                         monster.hp -= playerdamage
@@ -242,7 +244,7 @@ def fight(monster):
                         currentXP += monster.xp
                         currentGold += monster.gold
                         totalKills += 1
-                        print("\nYou gained %d XP and looted %d gold!\n" % (monster.xp, monster.gold))
+                        print("You gained %d XP and looted %d gold!\n" % (monster.xp, monster.gold))
 
             elif fightMove[0] == "flee":
                 print("\nYou attempt to flee!")
@@ -298,11 +300,15 @@ all_items = {
     2: {"name": "Sword", "dmg": 8, "bns": 0, "arm": 1, "val": 30, "desc": "A standard iron sword", "iid": 2},
     3: {"name": "Sword", "dmg": 8, "bns": 1, "arm": 1, "val": 10, "desc": "This sword hums with mysterious energy",
         "iid": 3},
-    100: {"name": "Beer", "bns": 0, "desc": "A foaming mug of ale", "dmg": 1, "arm": 1, "val": 1, "iid": 100}
+    100: {"name": "Beer", "bns": 0, "desc": "A foaming mug of ale", "dmg": 1, "arm": 1, "val": 1, "iid": 100},
+    1000: {"name": 'Alerics Medallion', "dmg": 0, "bns": 0, "arm": 0, "val": 50, "desc":
+           'A shiny medallion with the icon of Pelor embossed onto it. It belongs to Aleric.', "iid": 1000}
     }
 
 all_monsters = {
-    1: {"name": "Goblin", "hp": 10, "arm": 1, "damage": 3, "gold": 10, "xp": 10, "desc": "A weak looking goblin"}
+    1: {"name": "Goblin", "hp": 10, "arm": 1, "damage": 3, "gold": 10, "xp": 10, "desc": "A weak looking goblin",
+        "mid": 1},
+    2: {"name": "Goblin", "hp": 15, "arm": 2, "damage": 6, "gold": 13, "xp": 20, "desc": "A goblin", "mid": 2}
     }
 
 inventory = Inventory()
@@ -359,12 +365,15 @@ while currentHP > 0:
                 mid = location[currentLocation]["mid"]
                 fight(Monster(all_monsters[mid]["name"],all_monsters[mid]["hp"], all_monsters[mid]["arm"],
                               all_monsters[mid]["damage"], all_monsters[mid]["gold"],all_monsters[mid]["xp"],
-                              all_monsters[mid]["desc"]))
+                              all_monsters[mid]["desc"], all_monsters[mid]["mid"]))
                 del location[currentLocation]["monster"]
-
                 if mid == 1:
-                    inventory.add_item(Item('Alerics Medallion', 0, 0, 50, 'A shiny medallion with the icon of Pelor '
-                                                                           'embossed onto it. It belomgs to Aleric.'))
+                    del all_monsters[1]
+
+                if 1 not in all_monsters.keys():
+                    inventory.add_item(Item('Alerics Medallion', 0, 0, 0, 50,
+                                            'A shiny medallion with the icon of Pelor embossed onto it.'
+                                            ' It belongs to Aleric.', 1000))
                     print("\n[+] You found Alerics medallion!\n")
             else:
                 print("\nThere is nothing to fight here\n")
