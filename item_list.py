@@ -1,27 +1,12 @@
-__author__ = 'Rob'
-"""
-Items
-ID           Name              Value
-1            rusty sword       10
-100          ale               1
+items = {
+    1: {"name": "Sword", "type": "weapon", "dmg": 6, "bns": 0, "arm": 0, "val": 10, "desc": "A rusty looking sword",
+        "iid": 1},
+    2: {"name": "Sword","type": "weapon","dmg": 8, "bns": 0, "arm": 0, "val": 30, "desc": "A standard iron sword",
+        "iid": 2},
+    3: {"name": "Sword","type": "weapon", "dmg": 8, "bns": 1, "arm": 0, "val": 100, "desc": "This sword hums with mysterious energy",
+        "iid": 3},
+    100: {"name": "Beer", "type": "item", "bns": 0, "desc": "A foaming mug of ale", "dmg": 1, "arm": 0, "val": 1,
+          "iid": 100},
 
-Monsters
-ID           Name
-1            weak goblin
-"""
+    }
 
-class Items(object):
-    def __init__(self, iid):
-        self.iid = iid
-
-    def item_list(self, iid):
-        all_items = {
-            1: {"name" : "Sword",
-                "desc": "A rusty looking sword",
-                "dmg": 5,
-                "arm": 1,
-                "val": 10},
-            }
-
-        return all_items[iid]
-        #When calling items inventory.add_item(Items.item_list(iid))
