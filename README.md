@@ -12,7 +12,7 @@ To do:
 
 *Add loot
 
-*Allow erquiping of items
+*Allow equiping of items
 
 *Allow usage of Food and Drink
 
