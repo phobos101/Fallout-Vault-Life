@@ -1,6 +1,6 @@
-# RPG Game (Master of Avalon)
+# RPG Game
 
-Rob's text-based adventure RPG.
+Rob's text-based adventure RPG based in the fallout universe.
 
 To do:
 
